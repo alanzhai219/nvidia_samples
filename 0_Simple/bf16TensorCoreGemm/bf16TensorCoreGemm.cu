@@ -196,7 +196,9 @@ __global__ void compute_bf16gemm(const __nv_bfloat16 *A, const __nv_bfloat16 *B,
     const size_t shmem_idx_b_off = BLOCK_COL_TILES * M;
 
     // This pointer is used to access the C and D matrix tiles this warp computes.
-    float *shmem_warp_tile_ptr = (float*)&shmem[0][0] + (warpId / BLOCK_ROW_WARPS) * SHMEM_STRIDE * N * BLOCK_ROW_WARPS + (warpId % BLOCK_ROW_WARPS) * SHMEM_OFFSET;
+    float *shmem_warp_tile_ptr = (float*)&shmem[0][0] + 
+                                 (warpId / BLOCK_ROW_WARPS) * SHMEM_STRIDE * N * BLOCK_ROW_WARPS + 
+                                 (warpId % BLOCK_ROW_WARPS) * SHMEM_OFFSET;
 
     // This pointer is used to stream the C and D matrices block-wide tile to and from shared memory.
     float *shmem_warp_stream_ptr = (float*)&shmem[0][0] + warpId * SHMEM_STRIDE * N;
