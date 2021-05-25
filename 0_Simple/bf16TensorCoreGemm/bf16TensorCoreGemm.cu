@@ -264,8 +264,9 @@ __global__ void compute_bf16gemm(const __nv_bfloat16 *A, const __nv_bfloat16 *B,
 
         // Select what warp copies what matrix to shared memory.
         // Warps 0-3 copy the A matrix, warps 4-7 copy the B matrix.
-        const __nv_bfloat16 *warp_ptr = (warpId < (WARPS_PER_BLOCK/2)) ? (&A[block_tile_i * M * K_GLOBAL] + M * K_GLOBAL * (warpId % (WARPS_PER_BLOCK/2)) * 2) :
-                                              (&B[block_tile_j * N * K_GLOBAL] + N * K_GLOBAL * (warpId % (WARPS_PER_BLOCK/2)) * 2);
+        const __nv_bfloat16 *warp_ptr = (warpId < (WARPS_PER_BLOCK/2)) ? 
+                                        (&A[block_tile_i * M * K_GLOBAL] + M * K_GLOBAL * (warpId % (WARPS_PER_BLOCK/2)) * 2) :
+                                        (&B[block_tile_j * N * K_GLOBAL] + N * K_GLOBAL * (warpId % (WARPS_PER_BLOCK/2)) * 2);
 
         // Go through the global K dimension by a fixed step at a time.
 #pragma unroll
@@ -372,7 +373,9 @@ __global__ void compute_bf16gemm_async_copy(const __nv_bfloat16 *A, const __nv_b
     constexpr size_t shmem_idx_b_off = BLOCK_COL_TILES * M;
 
     // This pointer is used to access the C and D matrix tiles this warp computes.
-    float *shmem_warp_tile_ptr = (float*)&shmem[0][0] + (warpId / BLOCK_ROW_WARPS) * SHMEM_STRIDE * N * BLOCK_ROW_WARPS + (warpId % BLOCK_ROW_WARPS) * SHMEM_OFFSET;
+    float *shmem_warp_tile_ptr = (float*)&shmem[0][0] + 
+                                 (warpId / BLOCK_ROW_WARPS) * SHMEM_STRIDE * N * BLOCK_ROW_WARPS + 
+                                 (warpId % BLOCK_ROW_WARPS) * SHMEM_OFFSET;
 
     // This pointer is used to stream the C and D matrices block-wide tile to and from shared memory.
     float *shmem_warp_stream_ptr = (float*)&shmem[0][0] + warpId * SHMEM_STRIDE * N;
@@ -444,8 +447,9 @@ __global__ void compute_bf16gemm_async_copy(const __nv_bfloat16 *A, const __nv_b
         __syncthreads();
         // Select what warp copies what matrix to shared memory.
         // Warps 0-3 copy the A matrix, warps 4-7 copy the B matrix.
-        const __nv_bfloat16 *warp_ptr = (warpId < (WARPS_PER_BLOCK/2)) ? (&A[block_tile_i * M * K_GLOBAL] + M * K_GLOBAL * (warpId % (WARPS_PER_BLOCK/2)) * 2) :
-                                              (&B[block_tile_j * N * K_GLOBAL] + N * K_GLOBAL * (warpId % (WARPS_PER_BLOCK/2)) * 2);
+        const __nv_bfloat16 *warp_ptr = (warpId < (WARPS_PER_BLOCK/2)) ? 
+                                        (&A[block_tile_i * M * K_GLOBAL] + M * K_GLOBAL * (warpId % (WARPS_PER_BLOCK/2)) * 2) :
+                                        (&B[block_tile_j * N * K_GLOBAL] + N * K_GLOBAL * (warpId % (WARPS_PER_BLOCK/2)) * 2);
 
         constexpr int chunksPerLane = ((WARP_SIZE/2) / CHUNK_COPY_LINES_PER_WARP) * 2;
         constexpr int loadStrideBfloat8 = 3; // load 8 bfloats, left-shift by 3.
